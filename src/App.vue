@@ -1,10 +1,11 @@
+
 <template>
   <div id="app">
     <div class="section">
       <p>Profiles List</p>
       <div class="flex-row">
         <label class="label" for="filter">Find profile:</label>
-        <input class="input">
+        <input v-model="search" @input="filterProfiles" class="input">
       </div>
       <div class="buttons">
         <button @click="sortAsc">&#9650; </button>
@@ -12,8 +13,8 @@
       </div>
 
       <ProfileCard
-        v-for="(profile, index) in profiles"
-        :key="index"
+        v-for="profile in displayedProfiles"
+        :key="profile.id"
         :profile="profile"
         class="profile"
       />
@@ -23,17 +24,17 @@
       <p class="header">Add new profile</p>
       <div class="flex-row">
         <label class="label">Name:</label>
-        <input class="input">
+        <input v-model="newProfile.name" class="input">
       </div>
       <div class="flex-row">
         <label class="label" for="filter">Email:</label>
-        <input class="input">
+        <input v-model="newProfile.email" class="input">
       </div>
       <div class="flex-row">
         <label class="label">Specialisation:</label>
-        <input class="input">
+        <input v-model="newProfile.description" class="input">
       </div>
-      <button>Add</button>
+      <button @click="addProfile">Add</button>
     </div>
   </div>
 </template>
@@ -72,10 +73,31 @@ export default {
           description: "Surgeon",
           likes: 53
         }
-      ]
+      ],
+      newProfile: {
+        name: "",
+        email: "",
+        description: "",
+        likes: 0,
+        comment: ""
+      },
+      search: "",
     };
   },
+  computed: {
+    filteredProfiles() {
+      return this.profiles.filter(profile => {
+        return (
+          profile.name.toLowerCase().includes(this.search.toLowerCase()) ||
+          profile.email.toLowerCase().includes(this.search.toLowerCase())
+        );
+      });
+    },
 
+    displayedProfiles() {
+      return this.search ? this.filteredProfiles : this.profiles;
+    }
+  },
   methods: {
     sortAsc() {
       this.profiles.sort(function(a, b) {
@@ -87,6 +109,28 @@ export default {
       this.profiles.sort(function(a, b) {
         return b.likes - a.likes;
       });
+    },
+    addProfile() {
+      if (
+        this.newProfile.name &&
+        this.newProfile.email &&
+        this.newProfile.description
+      ) {
+        const newId = this.profiles.length
+          ? this.profiles[this.profiles.length - 1].id + 1
+          : 1;
+        this.profiles.push({
+          ...this.newProfile,
+          id: newId
+        });
+        this.newProfile = {
+          name: "",
+          email: "",
+          description: "",
+          likes: 0,
+          comment: ""
+        };
+      }
     }
   }
 };
